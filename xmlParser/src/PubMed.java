@@ -15,7 +15,6 @@ public class PubMed {
 		int top;
         String[] words_array;
         String[] journals_array;
-        String[] articles_array;
         String[] years_array;
 		Token[] token_array;
         Token[] journals_distinct;
