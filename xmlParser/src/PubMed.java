@@ -7,22 +7,29 @@ public class PubMed {
 		String words = "";
         String years = "";
         String journals = "";
+        String mesh = "";
+        String DescriptorName = "";
+        String QualifierName = "";
 		int document_count = 0;
         int year_count = 0;
 		int word_count;
 		int distinct_count;
+		int mesh_count = 0;
 		int output;
 		int top;
+		boolean found;
         String[] words_array;
         String[] journals_array;
         String[] years_array;
+        String[] mesh_array;
 		Token[] token_array;
         Token[] journals_distinct;
         Token[] years_distinct;
+        Token[] mesh_distinct;
 		MergeSort mergesort = new MergeSort();
 		
 		
-		File file = new File("/home/irina/Documents/WS18_19/Machinelle Sprachverarbeitung/assignment1-corpus/pubmed_7.xml");
+		File file = new File("/home/irina/Documents/WS18_19/Machinelle Sprachverarbeitung/assignment1-corpus/test.xml");
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		
 		while ((line = br.readLine()) != null) {
@@ -57,23 +64,52 @@ public class PubMed {
                     year_count++;
                 }
             }
+            else if (line.contains("<MeshHeading>") ) {
+                line = br.readLine();
+                found = false;
+                while ( !line.contains("</MeshHeading>") ) {
+                    if (line.contains("<DescriptorName")) {
+                        DescriptorName = line.replaceAll("\\s*<DescriptorName[^>]*>([^<]*)</DescriptorName>", "$1");
+                        line = br.readLine();
+                    }
+                    else if (line.contains("<QualifierName")) {
+                        QualifierName = line.replaceAll("\\s*<QualifierName[^>]*>([^<]*)</QualifierName>", "$1");
+                        mesh = mesh + DescriptorName + "//" + QualifierName + "@@";
+                        mesh_count++;
+                        line = br.readLine();
+                        found = true;
+                    }
+                    else line = br.readLine();
+                }
+                if (found == false) {
+                    mesh = mesh + DescriptorName + "@@";
+                    mesh_count++;
+                }
+            }
 			}
-        // create an array of words in the <ArticleTitle> and <AbstractText> Elements
+        // create an array of words
 		words = words.replaceAll("<ArticleTitle>|</ArticleTitle>|<Abstract>|</Abstract>|<AbstractText[^>]*>|</AbstractText>","").trim().toLowerCase();
 		words_array = words.split("\\s+");
 		word_count = words_array.length;
         // create an array of years and journals
 		journals_array = journals.replaceAll("\\s*<Title>\\s*", "").split("\\s*</Title>\\s*");
 		years_array = years.replaceAll("\\s*<Year>\\s*", "").split("\\s*</Year>\\s*");
+        // create an array of meshHeadings
+		mesh_array = mesh.split("@@");
 
-        System.out.println("Journals:");
-        for (int i = 0; i < journals_array.length; i++) {
-            System.out.println(i + " " + journals_array[i]);
+        //count and sort meshHeadings
+        mesh_distinct = new Token[mesh_count];
+        distinct_count = countToken(mesh_array, mesh_distinct, mesh_count);
+        mergesort.sort(mesh_distinct, distinct_count);
+        System.out.println("MeSH: " + mesh_count + " (" + distinct_count + " distinct)");
+        output = 10;
+        if ( output > distinct_count ) {
+            output = distinct_count;
         }
-        System.out.println("Years:");
-        for (int i = 0; i < years_array.length; i++) {
-            System.out.println(i + " " + years_array[i]);
-        }
+        top = printTokens(mesh_distinct, mesh_count, distinct_count, output);
+        System.out.println("Top 50: " + top + " (" + String.format("%.2f", (double)top/mesh_count) + ")");
+        System.out.println();
+
 
         //count and sort words in the <ArticleTitle> and <AbstractText> Elements
         token_array = new Token[word_count];
