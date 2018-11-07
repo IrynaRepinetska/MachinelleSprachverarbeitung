@@ -50,8 +50,8 @@ public class PubMed {
                         line = br.readLine();
                     }
                     words = words + line;
-                } else if (line.contains("<Abstract>")) {
-                    while (!line.contains("</Abstract>")) {
+                } else if (line.contains("</AbstractText>")) {
+                    while (!line.contains("</AbstractText>")) {
                         words = words + line;
                         line = br.readLine();
                     }
@@ -92,7 +92,7 @@ public class PubMed {
             }
         }
         // create an array of words
-        words = words.replaceAll("<ArticleTitle>|</ArticleTitle>|<Abstract>|</Abstract>|<AbstractText[^>]*>|</AbstractText>", "").trim().toLowerCase();
+        words = words.replaceAll("<ArticleTitle>|</ArticleTitle>|<AbstractText[^>]*>|</AbstractText>", "").trim().toLowerCase();
         words_array = words.split("\\s+");
         word_count = words_array.length;
         // create an array of years and journals
